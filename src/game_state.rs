@@ -37,8 +37,10 @@ impl GameState {
         debug!("initializing game state with word: {}", word);
         debug!("initializing game with max guesses: {}", config.max_incorrect_guesses);
         let word_length = (&word).len() as usize;
+        let mut lower_word = word.clone();
+        lower_word.make_ascii_lowercase();
         GameState {
-            hidden_word : word,
+            hidden_word : lower_word,
             guessed_word : "_".repeat(word_length),
             incorrect_guesses : 0,
             game_config : config
@@ -46,6 +48,8 @@ impl GameState {
     }
 
     fn is_correct_guess(&self, letter: char) -> bool {
+        let pos_vec: Vec<usize> = Vec::new();
+        // for i in self.
         // rewrite this to return some kind of a list to positions where the guess is found
         true
     }
