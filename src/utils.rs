@@ -1,6 +1,6 @@
 pub fn search_word(word: &String, letter: char) -> Vec<usize> {
-let mut pos_vec: Vec<usize> = Vec::new();
-let mut substr_index_start = 0;
+    let mut pos_vec: Vec<usize> = Vec::new();
+    let mut substr_index_start = 0;
     let mut substr_loc: usize;
     loop
     {

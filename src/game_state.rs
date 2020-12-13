@@ -1,3 +1,6 @@
+#[path="utils.rs"]
+mod utils;
+
 use envconfig::Envconfig;
 use log::{debug, trace};
 
@@ -47,13 +50,6 @@ impl GameState {
         }
     }
 
-    fn is_correct_guess(&self, letter: char) -> bool {
-        let pos_vec: Vec<usize> = Vec::new();
-        // for i in self.
-        // rewrite this to return some kind of a list to positions where the guess is found
-        true
-    }
-
     pub fn incorrect_guesses(&self) -> u16 {
         self.incorrect_guesses
     }
@@ -65,11 +61,8 @@ impl GameState {
         // i.e., len == 0 => incorrect guess
         // len > 0 => correct guess
         // then fill in letters
-        let is_correct = self.is_correct_guess(letter);
-        if !is_correct
-        {
-            self.incorrect_guesses = self.incorrect_guesses + 1;
-        }
+        let positions = utils::search_word(&self.hidden_word, letter);
+        let is_correct = !positions.is_empty();
         is_correct
     }
 
