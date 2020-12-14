@@ -1,4 +1,4 @@
-pub fn search_word(word: &String, letter: char) -> Vec<usize> {
+pub fn search_word(word: &String, letter: char) -> Option<Vec<usize>> {
     let mut pos_vec: Vec<usize> = Vec::new();
     let mut substr_index_start = 0;
     let mut substr_loc: usize;
@@ -17,5 +17,9 @@ pub fn search_word(word: &String, letter: char) -> Vec<usize> {
             break;
         }
     }
-    pos_vec
+    if pos_vec.is_empty() {
+        None
+    } else {
+        Some(pos_vec)
+    }
 }

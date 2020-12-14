@@ -1,8 +1,6 @@
-#[path="utils.rs"]
-mod utils;
-
 use envconfig::Envconfig;
-use log::{debug, trace};
+use log::{debug};
+use crate::utils;
 
 
 #[derive(Envconfig)]
@@ -32,18 +30,15 @@ pub enum GameStatus {
     Lost,
     Playing
 }
-
 impl GameState {
     pub fn new(word: String) -> GameState
     {
         let config = Config::init_from_env().unwrap_or(Config::default());
-        debug!("initializing game state with word: {}", word);
-        debug!("initializing game with max guesses: {}", config.max_incorrect_guesses);
         let word_length = (&word).len() as usize;
-        let mut lower_word = word.clone();
-        lower_word.make_ascii_lowercase();
+        debug!("initializing game state with word: {}", word.to_ascii_lowercase());
+        debug!("initializing game with max guesses: {}", config.max_incorrect_guesses);
         GameState {
-            hidden_word : lower_word,
+            hidden_word : word.to_ascii_lowercase(),
             guessed_word : "_".repeat(word_length),
             incorrect_guesses : 0,
             game_config : config
@@ -54,16 +49,25 @@ impl GameState {
         self.incorrect_guesses
     }
 
+    pub fn get_word(&self) -> &String {
+        &self.guessed_word
+    }
+
     pub fn guess_letter(&mut self, letter: char) -> bool {
-        trace!("guessed {}", letter);
-        // see comment above
-        // change this logic so it operates based on the length of the list
-        // i.e., len == 0 => incorrect guess
-        // len > 0 => correct guess
-        // then fill in letters
-        let positions = utils::search_word(&self.hidden_word, letter);
-        let is_correct = !positions.is_empty();
-        is_correct
+        debug!("guessed {}", letter);
+        if let Some(positions) = utils::search_word(&self.hidden_word, letter) {
+            debug!("{} found at {:?}", letter, positions);
+            // let is_correct = !positions.is_empty();
+            debug!("before change {}", self.guessed_word);
+            self.guessed_word = self.guessed_word.chars().enumerate()
+                .map(|(i, c)| if positions.contains(&i) { letter } else { c })
+                .collect();
+            debug!("after change {}", self.guessed_word);
+            true
+        } else {
+            self.incorrect_guesses = self.incorrect_guesses + 1;
+            false
+        }
     }
 
     pub fn game_status(&self) -> GameStatus {
@@ -94,7 +98,7 @@ mod tests {
     pub fn test_guess_positive() {
         let mut game_state = GameState::new(String::from("Hello"));
         let incorrect_before_guess = game_state.incorrect_guesses();
-        let guessed_correctly = game_state.guess_letter('z');
+        let guessed_correctly = game_state.guess_letter('l');
         let incorrect_after_guess = game_state.incorrect_guesses();
 
         assert!((incorrect_after_guess - incorrect_before_guess == 0) && guessed_correctly);
