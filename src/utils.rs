@@ -1,4 +1,4 @@
-pub fn search_word(word: &String, letter: char) -> Option<Vec<usize>> {
+pub fn search_word(word: &String, letter: char) -> Vec<usize> {
     let mut pos_vec: Vec<usize> = Vec::new();
     let mut substr_index_start = 0;
     let mut substr_loc: usize;
@@ -17,9 +17,23 @@ pub fn search_word(word: &String, letter: char) -> Option<Vec<usize>> {
             break;
         }
     }
-    if pos_vec.is_empty() {
-        None
-    } else {
-        Some(pos_vec)
+    pos_vec
+}
+
+pub trait CharExt {
+    fn to_other_case(&self) -> char;
+}
+
+impl CharExt for char {
+    fn to_other_case(&self) -> char {
+        return if self.is_ascii_lowercase() {
+            self.to_ascii_uppercase()
+        }
+        else if self.is_ascii_uppercase() {
+            self.to_ascii_lowercase()
+        }
+        else {
+            self.clone()
+        }
     }
 }

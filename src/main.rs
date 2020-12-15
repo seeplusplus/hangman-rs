@@ -1,10 +1,6 @@
-mod word_list;
-mod game_state;
-mod utils;
-
-use word_list::{DefaultWordList, WordList};
-use game_state::{GameState, GameStatus};
-use std::io::{self, Read, Stdin};
+use hangman::word_list::{DefaultWordList, WordList};
+use hangman::game_state::{GameState, GameStatus};
+use std::io::{self, Stdin};
 
 use log::{debug};
 
@@ -26,23 +22,36 @@ impl Hangman {
             game_state: GameState::new(DefaultWordList::get_word())
         }
     }
-    pub fn display_word(&self) {
-        println!("You word is: {}", self.game_state.get_word());
+    pub fn display_status(&self) {
+        match self.game_state.game_status() {
+            GameStatus::Won => {
+                println!("You have won! The word was \"{}\"", self.game_state.get_word());
+            },
+            GameStatus::Lost => {
+                println!("You have lost! Try again!");
+            },
+            GameStatus::Playing => {
+                println!("The word is {}", self.game_state.get_word());
+            }
+        }
     }
-    pub fn get_user_guess(&mut self) -> io::Result<char> {
-        let mut buffer = String::new();
-        self.stdin.read_to_string(&mut buffer)?;
-        let input_char = buffer.to_ascii_lowercase().chars().enumerate().nth(0).unwrap().1;
-
-        Ok(input_char)
+    pub fn get_user_guess(&mut self) -> char {
+        let mut c: char = ' ';
+        println!("Enter your guess...");
+        while !c.is_alphabetic() {
+            let mut buffer = String::new();
+            self.stdin.read_line(&mut buffer).unwrap();
+            c = buffer.to_ascii_lowercase().chars().nth(0).unwrap_or(' ');
+        }
+        c
     }
 
     pub fn play(&mut self) {
         let mut guessed_char: char;
         debug!("entering game loop");
         loop {
-            self.display_word();
-            guessed_char = self.get_user_guess().unwrap();
+            self.display_status();
+            guessed_char = self.get_user_guess();
             self.game_state.guess_letter(guessed_char);
 
             match self.game_state.game_status() 
@@ -51,9 +60,8 @@ impl Hangman {
                 GameStatus::Lost => {break;},
                 _ => {}
             }
-            self.display_word();
-            break;
         }
+        self.display_status();
     }
 }
 

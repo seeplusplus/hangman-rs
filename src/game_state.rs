@@ -1,21 +1,8 @@
+use crate::Config;
+use crate::utils;
+use crate::utils::{CharExt};
 use envconfig::Envconfig;
 use log::{debug};
-use crate::utils;
-
-
-#[derive(Envconfig)]
-struct Config {
-    #[envconfig(from = "MAX_GUESSES")]
-    pub max_incorrect_guesses: u16
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Config {
-            max_incorrect_guesses : 6
-        }
-    }
-}
 
 pub struct GameState {
     hidden_word: String,
@@ -30,15 +17,16 @@ pub enum GameStatus {
     Lost,
     Playing
 }
+
 impl GameState {
     pub fn new(word: String) -> GameState
     {
         let config = Config::init_from_env().unwrap_or(Config::default());
         let word_length = (&word).len() as usize;
-        debug!("initializing game state with word: {}", word.to_ascii_lowercase());
+        debug!("initializing game state with word: {}", word);
         debug!("initializing game with max guesses: {}", config.max_incorrect_guesses);
         GameState {
-            hidden_word : word.to_ascii_lowercase(),
+            hidden_word : word,
             guessed_word : "_".repeat(word_length),
             incorrect_guesses : 0,
             game_config : config
@@ -55,12 +43,16 @@ impl GameState {
 
     pub fn guess_letter(&mut self, letter: char) -> bool {
         debug!("guessed {}", letter);
-        if let Some(positions) = utils::search_word(&self.hidden_word, letter) {
+        let mut positions = utils::search_word(&self.hidden_word, letter);
+        if letter.is_ascii() {
+            positions.extend(utils::search_word(&self.hidden_word, letter.to_other_case()));
+        }
+        if !positions.is_empty() {
             debug!("{} found at {:?}", letter, positions);
             // let is_correct = !positions.is_empty();
             debug!("before change {}", self.guessed_word);
             self.guessed_word = self.guessed_word.chars().enumerate()
-                .map(|(i, c)| if positions.contains(&i) { letter } else { c })
+                .map(|(i, c)| if positions.contains(&i) { self.hidden_word.chars().nth(i).unwrap_or(letter) } else { c })
                 .collect();
             debug!("after change {}", self.guessed_word);
             true
